@@ -12,7 +12,7 @@ const userSchema = Schema(
       type: String,
       required: [true, "email is required for registration"],
       trim: true,
-      lowerCase: true,
+      lowercase: true,
     },
     password: {
       type: String,

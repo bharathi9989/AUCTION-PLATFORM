@@ -15,7 +15,8 @@ export const register = async (req, res) => {
       });
     }
     // hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const salt = await bcrypt.genSalt(Number(process.env.SALT));
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // create New User
 
@@ -39,19 +40,22 @@ export const register = async (req, res) => {
 };
 export const login = async (req, res) => {
   const { email, password } = req.body;
+  console.log(req.body);
   try {
     // check if user Exist
-    const user = await User.findOne({ email });
-    if (!email) return res.status(400).json({ message: "User not Found" });
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) return res.status(400).json({ message: "User not Found" });
 
     // Compare Password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
     // Genarate JWT token
-    const token = generateToken({ id: newUser._id, role: newUser.role });
-    res.status(200).json({
+    const token = generateToken({ id: user._id, role: user.role });
+    return res.status(200).json({
       message: "user Login Successfully",
+      token,
+      user,
     });
   } catch (err) {
     res.status(500).json({
